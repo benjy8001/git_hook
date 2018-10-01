@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Color codes
+red=`tput setaf 1`
+green=`tput setaf 2`
+blue=`tput setaf 4`
+reset=`tput sgr0`
+
+# Notification
+echo  "${blue}"
+echo "# Running pre-commit git hook."
+echo "==============================${reset}"
+
+#make php-cs-fixer to add
+for process in {"make security","make tu","make phpcpd","make phpdcd","make twigcs","make php_codesnifer"}; do
+ echo -n "${blue} Running ${reset}$process ..."
+ $process > /dev/null 2>&1
+ res=$?
+ if [ $res -ne 0 ]
+ then
+  echo "${red} FAILED${reset}"
+  exit 1 # push will not execute
+ fi
+ echo "${green} OK${reset}"
+done
+
+exit 0 # push will execute

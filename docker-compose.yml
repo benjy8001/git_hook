@@ -1,0 +1,39 @@
+version: '3.4'
+
+services:
+  application:
+    container_name: bma_webapp
+    image: bma/webapp
+    build:
+      context: .
+      cache_from:
+        - bma/webapp
+    volumes:
+      - ./webapp:/mnt/apps/app:rw,cached
+    ports:
+      - "80:80"
+    depends_on:
+      - database
+
+  database:
+    container_name: database
+    image: mysql:8
+    environment:
+      - MYSQL_DATABASE=mysf
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=toor
+    volumes:
+    - ./db/data:/var/lib/mysql:rw
+    ports:
+      - "5432:5432"
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    environment:
+    - PMA_USER=user
+password    ports:
+      - "8080:80"
+    links:
+      - database:db
