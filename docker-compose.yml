@@ -1,39 +1,48 @@
 version: '3.4'
 
 services:
-  application:
-    container_name: bma_webapp
-    image: bma/webapp
-    build:
-      context: .
-      cache_from:
-        - bma/webapp
-    volumes:
-      - ./webapp:/mnt/apps/app:rw,cached
+  http:
+    image: httpd:latest
     ports:
-      - "80:80"
-    depends_on:
-      - database
-
-  database:
-    container_name: database
-    image: mysql:8
+      - 80:80
+    volumes:
+      - ./webapp:/srv:ro
+  php:
+    image: php:7.2-fpm-alpine
+    volumes:
+      - ./webapp:/srv:rw
     environment:
-      - MYSQL_DATABASE=mysf
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
+      APP_ENV: dev
+      XDEBUG_CONFIG: "remote_host=172.0.0.1 remote_enable=on"
+      APP_XDEBUG: enabled
+      SYMFONY_PHPUNIT_VERSION: 7.4
+      APP_AUTO_UPDATE: disabled
+    depends_on:
+      - db
+    links:
+      - http:front.test.fr
+
+  db:
+    image: mysql:5.7.25
+    environment:
+      - MYSQL_DATABASE=mybdd
+      - MYSQL_USER=bdd
+      - MYSQL_PASSWORD=user
       - MYSQL_ROOT_PASSWORD=toor
     volumes:
-    - ./db/data:/var/lib/mysql:rw
+      - database:/var/lib/mysql:rw
+      - ./db/mycustom.cnf:/etc/mysql/conf.d/custom.cnf
     ports:
-      - "5432:5432"
+      - 3306:3306
 
-  phpmyadmin:
-    container_name: phpmyadmin
-    image: phpmyadmin/phpmyadmin
-    environment:
-    - PMA_USER=user
-password    ports:
-      - "8080:80"
-    links:
-      - database:db
+  node:
+    image: node:8-alpine
+    hostname: node.test
+    working_dir: /srv
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./webapp/:/srv/
+
+volumes:
+  database: ~
