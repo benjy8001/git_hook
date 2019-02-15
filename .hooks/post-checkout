@@ -1,0 +1,13 @@
+#!/bin/bash
+. "$GIT_DIR/hooks/change_detector.sh"
+
+if [ -f composer.lock ]
+then
+	if has_changed post-checkout composer.lock
+	then
+		echo "composer.lock has changed!"
+		echo "You should run Composer!"
+	fi
+else
+	echo "no composer.lock found!"
+fi

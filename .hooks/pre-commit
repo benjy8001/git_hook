@@ -1,0 +1,43 @@
+#!/bin/bash
+. "$GIT_DIR/hooks/change_detector.sh"
+
+junkchecker_phrases_file="$GIT_DIR/hooks/junk-words"
+if [ -f $junkchecker_phrases_file ]
+then
+	if git-rev-parse --verify HEAD >/dev/null 2>&1; then
+		against=HEAD
+	else
+		against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+	fi
+
+	for FILE in $(git diff-index --cached --name-status $against -- | cut -c 3-); do
+		if [ -f "$FILE" ]
+		then
+			while IFS='' read -r line || [[ -n "$line" ]];
+			do
+				git diff --cached --diff-filter=ACMR "$FILE" | grep -E '^\+' | grep --quiet "$line"
+				if [ $? -eq 0 ]
+				then
+					cat <<- EOT >&2
+					Junk checker detected: $FILE contains '$line'.
+					Use the --no-verify option to bypass this error message.
+					EOT
+					exit 1
+				fi
+			done < "$junkchecker_phrases_file"
+		fi
+	done
+else
+	echo "Could not find file $junkchecker_phrases_file . Please check your configuration."
+	exit 2
+fi
+
+if has_changed pre-commit composer.json
+then
+	composer validate
+	isValid=$?
+	if [ $isValid -ne 0 ]
+	then
+		exit $isValid
+	fi
+fi

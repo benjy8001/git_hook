@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# execute a command hidden if failt ask if re rerun command with output
+#
+# sample : run_command make test
+#
+function run_command {
+    LAST_CMD=$@
+    printf "\033[36m running :  \033[34m $LAST_CMD \033[0m"
+    $($LAST_CMD >> /dev/null 2>&1)
+    rc=$?
+    if [[ $rc != 0 ]] ; then
+        printf "\033[31m .. Fail  \033[0m\n"
+        echo -n "It looks like some of your tests failed. Would you like to see a more detailed test output? (y/n) "
+        read YN
+        if [ -z "$YN" ]; then
+            exit $rc;
+        elif [ "$YN" != "y" ]; then
+            exit $rc;
+        fi
+        $($LAST_CMD)
+        exit $rc;
+    else
+       printf "\033[32m .. PASS  \033[0m\n"
+    fi
+}
+
+exec < /dev/tty
+#prepush test php-cs-fixer test twigcs phpcpd php_codesnifer phpmd security
+make banner
+run_command make security
+run_command make db-validate-schema
+run_command make test
+run_command make php-cs-fixer
+run_command make twigcs
+run_command make phpcpd
+run_command make php_codesnifer
+## disabled because need a lot of work
+#run_command make phpmd
+
+exit 0
