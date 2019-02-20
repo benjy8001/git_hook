@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Add reference to issue in commit message (if branch is created from issue)
+# Ex:
+#  Branch name = 233-bug
+#  Original commit message = "Bug fix"
+#  Result commit message = "Bug fix (ref #233)"
+#
+#$1 = .git/COMMIT_EDITMSG
+
+if [ -z "$BRANCHES_TO_SKIP" ]; then
+  BRANCHES_TO_SKIP=(master develop test)
+fi
+
+BRANCH_NAME=$(git symbolic-ref --short HEAD)
+BRANCH_NAME="${BRANCH_NAME##*/}"
+BRANCH_EXCLUDED=$(printf "%s\n" "${BRANCHES_TO_SKIP[@]}" | grep -c "^$BRANCH_NAME$")
+BRANCH_IN_COMMIT=$(grep -c "\[$BRANCH_NAME\]" $1)
+
+if [ -n "$BRANCH_NAME" ] && ! [[ $BRANCH_EXCLUDED -eq 1 ]] && ! [[ $BRANCH_IN_COMMIT -ge 1 ]]; then
+  ISSUE_NUMBER=$(echo $BRANCH_NAME | sed -n 's/\([0-9]\)-.*/\1/p')
+  if [ -n ${ISSUE_NUMBER} ]; then
+    REF_ALREADY_IN_COMMIT_MESSAGE=$(grep -c "(ref #$ISSUE_NUMBER)" $1)
+    if [[ $REF_ALREADY_IN_COMMIT_MESSAGE -eq 0 ]]; then
+      #sed -i.back "1s/^/\n\n(ref #$ISSUE_NUMBER)/" "$1"
+      sed -i.back "1s/$/ (ref #$ISSUE_NUMBER)/" "$1"
+    fi
+  fi
+fi
