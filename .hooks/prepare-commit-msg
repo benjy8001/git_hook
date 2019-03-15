@@ -19,8 +19,8 @@ BRANCH_IN_COMMIT=$(grep -c "\[$BRANCH_NAME\]" $1)
 
 if [ -n "$BRANCH_NAME" ] && ! [[ $BRANCH_EXCLUDED -eq 1 ]] && ! [[ $BRANCH_IN_COMMIT -ge 1 ]]; then
   ISSUE_NUMBER=$(echo $BRANCH_NAME | sed -n 's/\([0-9]\)-.*/\1/p')
-  if [ -n ${ISSUE_NUMBER} ]; then
-    REF_ALREADY_IN_COMMIT_MESSAGE=$(grep -c "(ref #$ISSUE_NUMBER)" $1)
+  if ! [ -z ${ISSUE_NUMBER} ]; then
+    REF_ALREADY_IN_COMMIT_MESSAGE=$(grep -c "#$ISSUE_NUMBER" $1)
     if [[ $REF_ALREADY_IN_COMMIT_MESSAGE -eq 0 ]]; then
       #sed -i.back "1s/^/\n\n(ref #$ISSUE_NUMBER)/" "$1"
       sed -i.back "1s/$/ (ref #$ISSUE_NUMBER)/" "$1"
