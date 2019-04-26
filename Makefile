@@ -328,6 +328,8 @@ apply-php-cs-fixer: ## apply php-cs-fixer fixes
 	docker pull $(IMAGE_AUDIT)
 	$(QA) php-cs-fixer fix --using-cache=no --verbose --diff
 
+phpstan: ## PHP Static Analysis Tool (https://github.com/phpstan/phpstan)
+	$(QA) phpstan analyse -l 0 -c .phpstan.neon --memory-limit=512M src
 
 twigcs: ## twigcs (https://github.com/allocine/twigcs)
 	$(QA) twigcs lint  --severity=error templates

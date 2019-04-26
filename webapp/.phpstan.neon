@@ -1,0 +1,6 @@
+parameters:
+	excludes_analyse:
+		- %currentWorkingDirectory%/fixtures
+		- %currentWorkingDirectory%/src/Migrations
+	ignoreErrors:
+		- '#Instantiated class SoapClient not found#'
